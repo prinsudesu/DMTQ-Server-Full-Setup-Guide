@@ -1,0 +1,189 @@
+1. Install XAMPP - 7.4.29 is used in this guide
+1.1 Install Java SDK
+1.2 Copy the "apktool.bat" and "apktool.jar" inside C:\Windows\
+
+Xampp already have a OpenSSL so you don't need to have WSL
+
+##################################################################
+
+2. Remove comment in "extension=sqlite3" in php.ini
+
+##################################################################
+
+3. Edit in httpd.conf
+	- Change ServerName localhost:80 > 182.225.74.14
+	Note: change if it will be used externally
+	
+	- Edit document root and directory
+	Note: this is optional, if you don't want to change you can leave it on default
+		#Original
+		DocumentRoot "C:/xampp/htdocs"
+		<Directory "C:/xampp/htdocs">
+		
+		#Replace
+		DocumentRoot "C:/dmtq"
+		<Directory "C:/dmtq">
+	
+	- Add code below and comment this line "Options Indexes FollowSymLinks Includes ExecCGI"
+	
+	Options Indexes FollowSymLinks MultiViews
+    AddType application/x-httpd-php .php
+
+	<FilesMatch \.php$>
+		   SetHandler application/x-httpd-php
+	</FilesMatch>
+	
+	- Uncomment this line "Include conf/extra/httpd-multilang-errordoc.conf"
+
+3.1 Edit httpd-vhosts.conf
+	- Add this code
+	Note: if you didn't change your xampp directory in httpd.conf, you need to edit to C:/xampp/htdocs
+
+	<VirtualHost *:80>
+		DocumentRoot "C:/dmtq/dmqglb.mb.pmang.com"
+		ServerName dmqglb.mb.pmang.com
+	</VirtualHost>
+
+	<VirtualHost *:80>
+		DocumentRoot "C:/dmtq/pmangplus.com"
+		ServerName pmangplus.com
+	</VirtualHost>
+
+	<VirtualHost *:80>
+		DocumentRoot "C:/dmtq/static.pmangplus.com"
+		ServerName static.pmangplus.com
+	</VirtualHost>
+
+	<VirtualHost *:80>
+		DocumentRoot "C:/dmtq/www.neonapi.com"
+		ServerName www.neonapi.com
+	</VirtualHost>
+
+	<VirtualHost *:443>
+		DocumentRoot "C:/dmtq/dmqglb.mb.pmang.com"
+		ServerName dmqglb.mb.pmang.com
+		SSLEngine on
+		SSLCertificateFile  "C:/dmtq/_info/dmtq.crt"
+		SSLCertificateKeyFile "C:/dmtq/_info/dmtq.key"
+		SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+		ErrorLog "C:/dmtq/_info/dmqglb-error.log"
+		CustomLog logs/ssl_request_log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+	</VirtualHost>
+
+	<VirtualHost *:443>
+		DocumentRoot "C:/dmtq/pmangplus.com"
+		ServerName pmangplus.com
+		SSLEngine on
+		SSLCertificateFile  "C:/dmtq/_info/dmtq.crt"
+		SSLCertificateKeyFile "C:/dmtq/_info/dmtq.key"
+		SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+		ErrorLog "C:/dmtq/_info/pmangplus-error.log"
+		CustomLog logs/ssl_request_log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+	</VirtualHost>
+
+	<VirtualHost *:443>
+		DocumentRoot "C:/dmtq/static.pmangplus.com"
+		ServerName static.pmangplus.com
+		SSLEngine on
+		SSLCertificateFile  "C:/dmtq/_info/dmtq.crt"
+		SSLCertificateKeyFile "C:/dmtq/_info/dmtq.key"
+		SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+		ErrorLog "C:/dmtq/_info/staticpmang-error.log"
+		CustomLog logs/ssl_request_log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+	</VirtualHost>
+
+	<VirtualHost *:443>
+		DocumentRoot "C:/dmtq/www.neonapi.com"
+		ServerName www.neonapi.com
+		SSLEngine on
+		SSLCertificateFile  "C:/dmtq/_info/dmtq.crt"
+		SSLCertificateKeyFile "C:/dmtq/_info/dmtq.key"
+		SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+		ErrorLog "C:/dmtq/_info/neon-error.log"
+		CustomLog logs/ssl_request_log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+	</VirtualHost>
+	
+##################################################################
+
+4. Editing the Server files
+	- Locating the database file "dmtq.db3"
+	
+	This are the files and directory to edit:
+	dmqglb.mb.pmang.com\score\index.php
+	www.neonapi.com\api\accounts\v3\global\login_dmq.php
+	
+	Note: If you don't have the accounts folder, rename the accounts_server.
+	
+	Change the directory of this to your own directory.
+	$handle = new SQLite3('C:/dmtq/_info/dmtq.db3');
+	
+##################################################################
+
+5. Create SSL Certificate
+	- Create a folder xampp\apache\crt folder
+	- Paste the make-cert.bat and cert-template.conf inside
+	- once done it will create a folder with your certificate
+	- copy the inside xampp\apache\bin folder
+	- open cmd and go to this directory xampp\apache\bin "cd C:\xampp\apache\bin"
+	- run the commands below one at a time
+	
+5.1 Create other SSL files for apk
+	- openssl.exe rsa -in dmtq.key > dmtq2.pem
+	- openssl.exe x509 -inform PEM -in dmtq.crt > dmtq.pem
+	- openssl.exe pkcs8 -topk8 -outform DER -in dmtq2.pem -inform PEM -out dmtq2.pk8 -nocrypt
+	- once done you will have the files below
+	
+	dmtq.crt
+	dmtq.key
+	dmtq.pem
+	dmtq2.pem
+	dmtq2.pk8
+	
+	- copy the dmtq.crt and dmtq.key inside "_info" folder
+	
+	Note: This steps below is for the new certificate.
+	- copy the dmtq.pem and dmtq2.pk8 inside "Sign APK" folder
+	- make another copy of dmtq.crt and rename it to rootCA.crt
+	- and move it inside the decompiled apk file "DJMAX_v1.3.4\res\raw"
+	
+##################################################################
+
+6. Decompress DJMAX apk using apktool
+	- apktool d filename.apk
+	
+6.1 Rebuild DJMAX apk
+	- apktool b C:/folder_name
+	
+6.2 Skipping APK Modification in code - Already provided
+	Note: Just update the rootCA.crt file in DJMAX_v1.3.4\res\raw
+	if your certificate is already out of date.
+
+6.3 Signing APK with pem and pk8 file
+	- Copy the DJMAX.apk, dmtq.pem, and dmtq2.pk8 files inside the "Sign APK" folder and run the command below
+	- "java -jar signapk.jar dmtq.pem dmtq2.pk8 DJMAX.apk DJMAX_signed.apk"
+
+Note: You copy the apk and is now ready for install.
+
+##################################################################
+
+7. Connecting to your Server
+	- Install the Hosts Go App
+	
+	Add Custom DNS 
+	Primary DNS: Your-IP-Address
+	
+	Add in Hosts Editor
+	IP Address: Your-IP-Address
+	
+	Domains:
+	dmqglb.mb.pmang.com
+	pmangplus.com
+	static.pmangplus.com
+	www.neonapi.com
+
+Dont forget to start the Apache in Xampp.
+	
+You can now start the Game!
+
+Note: This guide only works on Android.
+Tested on Android 12
